@@ -1,0 +1,61 @@
+# --- Secrets (public repo: never commit these) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.keystore
+*.jks
+secrets/
+tokens/
+*token*.json
+*credentials*.json
+google-services.json
+local.properties
+
+# --- Personal data ---
+# Real meal photos and spike results stay local
+data/
+photos/
+spike/photos/
+spike/results/
+*.jpg
+*.jpeg
+*.png
+*.heic
+!docs/**/*.png
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Python (backend) ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# --- Android / Gradle ---
+.gradle/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.iml
+.idea/
+.kotlin/
+
+# --- OS / editors ---
+.DS_Store
+.vscode/
+*.swp
+
+# --- Claude Code local settings ---
+.claude/settings.local.json

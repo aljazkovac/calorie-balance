@@ -15,8 +15,8 @@ Goal: photo → macros → save → today's balance, with a hard-coded burned va
 
 ### Backend (FastAPI)
 
-- [ ] Project skeleton (`backend/`), settings loaded from `.env`
-- [ ] `POST /meals/estimate` — photo in, Claude vision → strict JSON out
+- [x] Project skeleton (`backend/`), settings loaded from `.env`
+- [x] `POST /meals/estimate` — photo in, Claude vision → strict JSON out
       (items, grams, kcal, protein/carbs/fat, confidence)
 - [ ] Try it on a few of my own meal photos via FastAPI's `/docs` page (sanity check, not an
       accuracy study)

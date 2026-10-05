@@ -20,6 +20,7 @@ The backend exists to hold the OAuth tokens and the AI API key (keep keys out of
 ## Public repo — rules
 
 This repo is public on GitHub.
+
 - Secrets only in `.env` (gitignored); document new variables in `.env.example` with empty values.
 - Never commit personal data: meal photos, spike results, body data, real Strava/COROS responses,
   local databases. Use synthetic fixtures in tests.
@@ -83,12 +84,15 @@ This repo is public on GitHub.
 
 ## Plan / order
 
-1. Spike: food-photo accuracy script — send 10–15 real meal photos to Claude vision, get JSON
-   (items, grams, kcal, protein/carbs/fat, confidence), compare against known meals.
-2. Thin end-to-end slice: photo → macros → save → today's balance (hard-coded burned value).
-3. Wire in real burned calories: `StravaBurnProvider` (Strava REST API + BMR estimate) behind
+Detailed checklist: `TODO.md` — keep it updated as items are done.
+
+Food estimates only need to be good enough to be useful — no formal accuracy study; the
+review/edit screen handles corrections.
+
+1. Thin end-to-end slice: photo → macros → save → today's balance (hard-coded burned value).
+2. Wire in real burned calories: `StravaBurnProvider` (Strava REST API + BMR estimate) behind
    the `BurnProvider` interface.
-4. UI polish (design pass only after the slice works). Screens: camera, review/edit estimate,
+3. UI polish (design pass only after the slice works). Screens: camera, review/edit estimate,
    today's balance, history. Material 3.
-5. Later, if I get a COROS watch: add `CorosBurnProvider` (COROS MCP) and switch to it; resolve
+4. Later, if I get a COROS watch: add `CorosBurnProvider` (COROS MCP) and switch to it; resolve
    the active-vs-total question first.

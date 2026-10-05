@@ -14,11 +14,9 @@ google-services.json
 local.properties
 
 # --- Personal data ---
-# Real meal photos and spike results stay local
+# Real meal photos stay local
 data/
 photos/
-spike/photos/
-spike/results/
 *.jpg
 *.jpeg
 *.png

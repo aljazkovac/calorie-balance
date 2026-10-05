@@ -7,22 +7,44 @@ Single user (me). Not distributed.
 ## Architecture (decided)
 
 ```
-Android app (Kotlin + Jetpack Compose, CameraX, Room for local meal log)
-   │  photo / "today's balance"
+Android app (Kotlin + Jetpack Compose, CameraX) — screens only, no local database
+   │  HTTPS + app token
    ▼
-Small backend (FastAPI)
-   ├─ BurnProvider → burned calories (Strava REST API now; COROS MCP later)
-   └─ Claude vision API → calories + macros as strict JSON
+Backend (FastAPI, Docker) on a DigitalOcean Droplet, behind Caddy (automatic HTTPS)
+   ├─ Claude vision API → calories + macros as strict JSON
+   ├─ SQLite + reduced meal photos on the Droplet's disk  ← single source of truth
+   └─ BurnProvider → burned calories (Strava REST API now; COROS MCP later)
 ```
 
-The backend exists to hold the OAuth tokens and the AI API key (keep keys out of the APK).
+The backend holds the API keys and OAuth tokens (keep keys out of the APK) **and** all data.
+
+## Data & hosting (decided)
+
+- **Meals live in the backend, not on the phone** (no Room). The backend stores each meal
+  (estimate, as edited by me) in SQLite and its reduced photo (~1568 px JPEG, ~250 KB) as a file;
+  the DB stores the photo path. It computes the daily balance (`GET /balance/today`).
+  - Why: data survives a lost phone, is backed up, easy to inspect and re-run; the app stays simple.
+    Logging a meal needs the backend (Claude) anyway, so offline-first would gain little.
+  - Room can be added later as an offline cache if needed.
+- **Original photos:** the app may also save the full-size original to the phone's gallery
+  (Google Photos backup) — optional setting. The app can also pick an existing gallery photo.
+- **Host: DigitalOcean Droplet** — Basic, 1 GB RAM (~$6/mo) + daily backups (+30%), EU region
+  (Amsterdam or Frankfurt). Not Fly.io (my preference).
+  - Docker Compose: backend container + Caddy (reverse proxy, Let's Encrypt HTTPS). Needs a
+    domain/subdomain pointing at the Droplet.
+  - Data in a host directory mounted into the container (`DATA_DIR`), so it survives redeploys.
+  - Server hardening: SSH keys only, DigitalOcean Cloud Firewall (22, 80, 443), unattended
+    security upgrades.
+  - Later: off-site backup of the DB + photos (e.g. DigitalOcean Spaces).
+- **Auth:** every request needs a secret app token (`Authorization: Bearer <APP_TOKEN>`); required
+  before the first deploy, since the backend is public and spends money per request.
 
 ## Public repo — rules
 
 This repo is public on GitHub.
 
 - Secrets only in `.env` (gitignored); document new variables in `.env.example` with empty values.
-- Never commit personal data: meal photos, spike results, body data, real Strava/COROS responses,
+- Never commit personal data: meal photos, meal databases, body data, real Strava/COROS responses,
   local databases. Use synthetic fixtures in tests.
 - Commits use the GitHub noreply email (set in this repo's local git config).
 - Check `git status` / the staged diff for secrets and personal data before every commit.
@@ -89,9 +111,10 @@ Detailed checklist: `TODO.md` — keep it updated as items are done.
 Food estimates only need to be good enough to be useful — no formal accuracy study; the
 review/edit screen handles corrections.
 
-1. Thin end-to-end slice: photo → macros → save → today's balance (hard-coded burned value).
+1. Thin end-to-end slice: photo → macros → save (backend) → today's balance (hard-coded burned
+   value); app token auth; deploy to the DigitalOcean Droplet.
 2. Wire in real burned calories: `StravaBurnProvider` (Strava REST API + BMR estimate) behind
-   the `BurnProvider` interface.
+   the `BurnProvider` interface. Strava refresh token stored in the backend's data dir/DB.
 3. UI polish (design pass only after the slice works). Screens: camera, review/edit estimate,
    today's balance, history. Material 3.
 4. Later, if I get a COROS watch: add `CorosBurnProvider` (COROS MCP) and switch to it; resolve

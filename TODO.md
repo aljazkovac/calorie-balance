@@ -13,7 +13,8 @@ Roadmap for calorie-balance. Decisions and background live in `CLAUDE.md`.
 ## 1. Thin end-to-end slice
 
 Goal: photo → macros → save → today's balance, with a hard-coded burned value, running on
-the Droplet and used from the phone.
+the Droplet and used from the phone. Order: backend → Android app against the local backend
+(emulator: `10.0.2.2:8000`, phone: Mac's LAN IP) → deploy.
 
 ### Backend (FastAPI)
 
@@ -29,6 +30,15 @@ the Droplet and used from the phone.
 - [x] App token auth on every endpoint (`Authorization: Bearer <APP_TOKEN>`)
 - [x] Tests with synthetic data (no real photos/meals in the repo)
 
+### Android app
+
+- [ ] Project skeleton (`android/`): Kotlin, Jetpack Compose, Material 3
+- [ ] Backend URL + app token config (not committed)
+- [ ] CameraX capture screen; also pick an existing photo from the gallery
+- [ ] Upload photo (`POST /meals` saves it), show the result on a basic review screen:
+      edit numbers (`PUT`) or discard (`DELETE`)
+- [ ] Basic "today" screen: today's meals (`GET /meals`) and balance (`GET /balance`)
+
 ### Deploy (DigitalOcean)
 
 - [ ] `Dockerfile` for the backend + `docker-compose.yml` (backend + Caddy), data dir as a volume
@@ -40,15 +50,6 @@ the Droplet and used from the phone.
 - [ ] Install Docker, copy `.env` to the server (never via git), `docker compose up -d`
 - [ ] Deploy script (later: GitHub Actions deploy on push to `main`)
 - [ ] Smoke test from the phone's browser: `https://<domain>/docs`
-
-### Android app
-
-- [ ] Project skeleton (`android/`): Kotlin, Jetpack Compose, Material 3
-- [ ] Backend URL + app token config (not committed)
-- [ ] CameraX capture screen; also pick an existing photo from the gallery
-- [ ] Send photo to backend, show estimate on a basic review screen (editable numbers)
-- [ ] Save meal via backend
-- [ ] Basic "today's balance" screen (from `GET /balance/today`)
 
 ## 2. Real burned calories (Strava)
 

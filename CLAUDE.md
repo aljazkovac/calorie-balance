@@ -22,7 +22,7 @@ The backend holds the API keys and OAuth tokens (keep keys out of the APK) **and
 
 - **Meals live in the backend, not on the phone** (no Room). The backend stores each meal
   (estimate, as edited by me) in SQLite and its reduced photo (~1568 px JPEG, ~250 KB) as a file;
-  the DB stores the photo path. It computes the daily balance (`GET /balance/today`).
+  the DB stores the photo path. It computes the daily balance (`GET /balance?date=`, default today).
   - Why: data survives a lost phone, is backed up, easy to inspect and re-run; the app stays simple.
     Logging a meal needs the backend (Claude) anyway, so offline-first would gain little.
   - Room can be added later as an offline cache if needed.
@@ -30,12 +30,14 @@ The backend holds the API keys and OAuth tokens (keep keys out of the APK) **and
   (Google Photos backup) — optional setting. The app can also pick an existing gallery photo.
 - **Host: DigitalOcean Droplet** — Basic, 1 GB RAM (~$6/mo) + daily backups (+30%), EU region
   (Amsterdam or Frankfurt). Not Fly.io (my preference).
-  - Docker Compose: backend container + Caddy (reverse proxy, Let's Encrypt HTTPS). Needs a
-    domain/subdomain pointing at the Droplet.
+  - Docker Compose: backend container + Caddy (reverse proxy, Let's Encrypt HTTPS).
+- **Domain: `reddsmart.org`**, registered at Cloudflare (bought 2026-10, 1 year — renew or enable
+  auto-renew). DNS at Cloudflare; the backend gets a subdomain (e.g. `calories.reddsmart.org`)
+  as an A record → Droplet IP, "DNS only" (grey cloud) so Caddy handles HTTPS itself.
   - Data in a host directory mounted into the container (`DATA_DIR`), so it survives redeploys.
   - Server hardening: SSH keys only, DigitalOcean Cloud Firewall (22, 80, 443), unattended
     security upgrades.
-  - Later: off-site backup of the DB + photos (e.g. DigitalOcean Spaces).
+  - Later: off-site backup of the DB + photos (Cloudflare R2 free tier, or DigitalOcean Spaces).
 - **Auth:** every request needs a secret app token (`Authorization: Bearer <APP_TOKEN>`); required
   before the first deploy, since the backend is public and spends money per request.
 
@@ -56,7 +58,7 @@ This repo is public on GitHub.
 - **Later (optional): switch to COROS MCP** if I buy a COROS watch — it has all-day data (steps,
   daily calories), which Strava lacks.
 - Keep the source swappable behind one interface; the Android app only calls the backend
-  (`GET /balance/today`) and never knows which provider is used:
+  (`GET /balance`) and never knows which provider is used:
 
   ```python
   @dataclass

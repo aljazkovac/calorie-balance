@@ -18,21 +18,22 @@ the Droplet and used from the phone.
 ### Backend (FastAPI)
 
 - [x] Project skeleton (`backend/`), settings loaded from `.env`
-- [x] `POST /meals/estimate` — photo in, Claude vision → strict JSON out
+- [x] Photo estimate (Claude vision) → strict JSON
       (items, grams, kcal, protein/carbs/fat, confidence)
-- [ ] Try it on a few of my own meal photos via FastAPI's `/docs` page (sanity check, not an
+- [x] Try `POST /meals` on a few of my own meal photos via FastAPI's `/docs` page (sanity check, not an
       accuracy study)
-- [ ] SQLite storage in `DATA_DIR` (meals + items), reduced photos as files next to it
-- [ ] Meal endpoints: save (estimate as edited + reduced photo), list by day, get, edit, delete
-- [ ] `GET /meals/{id}/photo`
-- [ ] `GET /balance/today` (or `?date=`) — burned (hard-coded `BurnProvider`) vs. eaten
-- [ ] App token auth on every endpoint (`Authorization: Bearer <APP_TOKEN>`)
-- [ ] Tests with synthetic data (no real photos/meals in the repo)
+- [x] SQLite storage in `DATA_DIR` (meals + items), reduced photos as files next to it
+- [x] Meal endpoints: `POST /meals` (photo → estimate → saved), list by day, get, edit (PUT), delete
+- [x] `GET /meals/{id}/photo`
+- [x] `GET /balance?date=` (default today) — burned (fixed `BurnProvider`) vs. eaten
+- [x] App token auth on every endpoint (`Authorization: Bearer <APP_TOKEN>`)
+- [x] Tests with synthetic data (no real photos/meals in the repo)
 
 ### Deploy (DigitalOcean)
 
 - [ ] `Dockerfile` for the backend + `docker-compose.yml` (backend + Caddy), data dir as a volume
-- [ ] Domain/subdomain for the backend (needed for HTTPS)
+- [x] Domain: `reddsmart.org` (Cloudflare)
+- [ ] DNS: A record `calories.reddsmart.org` → Droplet IP (DNS only)
 - [ ] Create Droplet: Basic 1 GB, EU region (Amsterdam/Frankfurt), Ubuntu LTS, SSH key,
       daily backups
 - [ ] Harden: SSH keys only, Cloud Firewall (22/80/443), unattended security upgrades
@@ -71,7 +72,7 @@ the Droplet and used from the phone.
 
 ## 4. Operations
 
-- [ ] Off-site backup of DB + photos (e.g. daily copy to DigitalOcean Spaces)
+- [ ] Off-site backup of DB + photos (e.g. daily copy to Cloudflare R2 or DigitalOcean Spaces)
 - [ ] Uptime check / alert if the backend is down
 - [ ] Optional: Room as an offline cache in the app
 

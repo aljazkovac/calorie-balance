@@ -41,7 +41,11 @@ class ModelEstimate(BaseModel):
     notes: str
 
 
-class MealEstimate(ModelEstimate):
+class Totals(BaseModel):
+    """Adds totals computed from `items` to any model that has them."""
+
+    items: list[FoodItem]
+
     @computed_field
     @property
     def total_kcal(self) -> float:
@@ -70,16 +74,17 @@ class EstimateRefused(Exception):
 client = AsyncAnthropic(api_key=settings.anthropic_api_key)
 
 
-def prepare_image(data: bytes) -> str:
-    """Fix phone EXIF rotation, downscale and re-encode as base64 JPEG."""
+def reduce_image(data: bytes) -> bytes:
+    """Fix phone EXIF rotation, downscale and re-encode as JPEG."""
     img = ImageOps.exif_transpose(Image.open(io.BytesIO(data)))
     img.thumbnail((MAX_IMAGE_EDGE, MAX_IMAGE_EDGE))
     buf = io.BytesIO()
     img.convert("RGB").save(buf, format="JPEG", quality=85)
-    return base64.standard_b64encode(buf.getvalue()).decode()
+    return buf.getvalue()
 
 
-async def estimate_meal(image_bytes: bytes) -> MealEstimate:
+async def estimate_meal(jpeg: bytes) -> ModelEstimate:
+    """Ask Claude for an estimate of a JPEG produced by `reduce_image`."""
     response = await client.beta.messages.parse(
         model=settings.food_model,
         max_tokens=16000,
@@ -94,7 +99,7 @@ async def estimate_meal(image_bytes: bytes) -> MealEstimate:
                         "source": {
                             "type": "base64",
                             "media_type": "image/jpeg",
-                            "data": prepare_image(image_bytes),
+                            "data": base64.standard_b64encode(jpeg).decode(),
                         },
                     },
                     {"type": "text", "text": PROMPT},
@@ -105,4 +110,4 @@ async def estimate_meal(image_bytes: bytes) -> MealEstimate:
     )
     if response.stop_reason == "refusal" or response.parsed_output is None:
         raise EstimateRefused(f"No estimate (stop_reason={response.stop_reason})")
-    return MealEstimate(**response.parsed_output.model_dump())
+    return response.parsed_output
